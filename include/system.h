@@ -17,6 +17,7 @@ class System {
   int RunningProcesses();             // TODO: See src/system.cpp
   std::string Kernel();               // TODO: See src/system.cpp
   std::string OperatingSystem();      // TODO: See src/system.cpp
+//	void TestFunction();   // made for testing functions not directly referenced by the system written in linuxparser
 
   // TODO: Define any necessary private members
  private:
