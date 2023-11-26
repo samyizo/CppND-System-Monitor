@@ -17,10 +17,10 @@ Process::Process(int constPid) {
 	pid = constPid;
 
    cpuUtil = CpuUtilization();
-   command = LinuxParser::Command(constPid);
-   ram = LinuxParser::Ram(constPid);
-   user = LinuxParser::User(constPid);
-   upTime = LinuxParser::UpTime(constPid);
+   command = LinuxParser::Command(pid);
+   ram = LinuxParser::Ram(pid);
+   user = LinuxParser::User(pid);
+   upTime = LinuxParser::UpTime(pid);
 
    
 } 
@@ -30,7 +30,7 @@ int Process::Pid() { return pid; }
 
 // TODO: Return this process's CPU utilization
 float Process::CpuUtilization() { 
- float cpuUtil = float(LinuxParser::ActiveJiffies(Pid())/100.f) / float((LinuxParser::UpTime(Pid())));
+ float cpuUtil = float(LinuxParser::ActiveJiffies(Pid())/10.f) / float((LinuxParser::UpTime(Pid())));
   return cpuUtil;
 }
 
@@ -48,4 +48,7 @@ long int Process::UpTime() { return LinuxParser::UpTime(pid); }
 
 // TODO: Overload the "less than" comparison operator for Process objects
 // REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a) const { return stof(Ram()) < stof(a.Ram()); }
+bool Process::operator<(Process const& a) const { 
+  try{return std::stof(Ram()) < std::stof(a.Ram());}
+          catch (std::invalid_argument &e)  {return true;}                               
+}

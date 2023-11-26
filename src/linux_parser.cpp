@@ -74,18 +74,29 @@ float LinuxParser::MemoryUtilization() {
 string line;
   string key;
   string value;
-  float numerator;
-  float denominator;
+  string ignore;
+  float numerator = 0;
+  float denominator = 0;
   std::ifstream filestream(kProcDirectory + kMeminfoFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
-      while (linestream >> key >> value) {
+      while (linestream >> key >> value >> ignore) {
         if (key == "MemFree:") { // 
-          numerator += std::stof(value);
+          try {
+          numerator = std::stof(value);
+          }
+          catch (std::invalid_argument &e) {
+          numerator = 0;
+          }
         }
         if (key == "MemTotal:") {
-        denominator += std::stof(value);
+          try {
+          denominator = std::stof(value);
+          }
+          catch (std::invalid_argument &e) {
+          denominator = 1;
+          }
         }
       }
     }
@@ -190,35 +201,13 @@ string line;
       std::istringstream linestream(line);
       linestream >> key >> value;
       if (key == "processes") {
-      	totalProcs = std::stof(value);
+        try {totalProcs = std::stof(value);}
+        catch (std::invalid_argument &e) {totalProcs = 0;}
         std::cout << totalProcs;
         return totalProcs;
       }
         }
       }
-
-  
-
-  // old way I was using to check pid by pid and check status...I guess this isn't an accurate rep?
-  /*
-  int numprocesses = 0;
-  DIR* directory = opendir(kProcDirectory.c_str());
-  struct dirent* file;
-  while ((file = readdir(directory)) != nullptr) {
-    // Is this a directory?
-    if (file->d_type == DT_DIR) {
-      // Is every character of the name a digit?
-      string filename(file->d_name);
-      // std::cout << filename + "\n";
-      if (std::all_of(filename.begin(), filename.end(), isdigit)) {
-        numprocesses++;
-      }
-  
- 
-}
-  }
-    return numprocesses;
-   */
 }
 
 // TODO: Read and return the number of running processes
@@ -240,37 +229,6 @@ int LinuxParser::RunningProcesses() {
     }
   }
   return totalProcs;
-  // old way I was using to go pid by pid, maybe this is still accurate? but way more complex
-  /*
-  int numprocesses = 0;
-  string key, value, line;
-  
-  DIR* directory = opendir(kProcDirectory.c_str());
-  struct dirent* file;
-  while ((file = readdir(directory)) != nullptr) {
-    // Is this a directory?
-    if (file->d_type == DT_DIR) {
-      // Is every character of the name a digit?
-      string filename(file->d_name);
-      if (std::all_of(filename.begin(), filename.end(), isdigit)) {
-        // check if this process in file path /proc/this/status - State = R or not
-                  std::ifstream filestream(kProcDirectory + filename + "/status");
-        		while (std::getline(filestream, line)) {
-                  if (filestream.is_open()) { 
-                    std::istringstream linestream(line);
-                        linestream >> key >> value;
-                        if (key == "State:") {
-                        	if (value == "R") {
-                            numprocesses++;
-                            }
-                        }
-                        }
-                    }
-      }
-}
-  }
-    return numprocesses; 
-   */
 }
 
 // TODO: Read and return the command associated with a process
@@ -298,7 +256,7 @@ int ramToConvert;
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
       while (linestream >> key >> value) {
-        if (key == "VmSize:") { // 
+        if (key == "VmRSS:") { // 
           ram = value;
           int ramToConvert = stoi(ram)/1000;
           ram = std::to_string(ramToConvert);
